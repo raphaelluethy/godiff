@@ -133,7 +133,7 @@ func (w *window) toolbar(c *ui.Context, pal *palette) {
 				w.finding = !w.finding
 			}
 			n := w.pendingComments()
-			copied := time.Since(w.copiedAt) < 2*time.Second
+			copied := w.copiedNow("comments")
 			cb := ui.ButtonBase(c).Height(28).Padding(0, 8).Gap(5).Radius(7).TextColor(t.TextMuted).
 				Label("Copy review comments").Tooltip("Copy review comments as Markdown").Disabled(n == 0)
 			if n == 0 {

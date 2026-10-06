@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/egoist/godiff/internal/agent"
 	"github.com/egoist/godiff/internal/github"
@@ -38,6 +39,13 @@ func (w *window) commands() []command {
 		}
 		return func() { w.nextNote(dir) }
 	}
+	// Copying them, likewise: nothing to copy without a review.
+	copyNotes := func() func() {
+		if len(w.notes) == 0 {
+			return nil
+		}
+		return w.copyNotes
+	}
 	whitespace := "Show Whitespace Changes"
 	if w.settings.ShowWhitespace {
 		whitespace = "Hide Whitespace Changes"
@@ -66,6 +74,7 @@ func (w *window) commands() []command {
 			}
 		}},
 		{title: "Copy Review Comments", run: w.copyComments},
+		{title: "Copy AI Notes", hint: "For an agent to address", run: copyNotes()},
 		{title: "Submit Review", hint: "Approve, comment or request changes", run: w.openSubmit},
 		{title: "Open Pull Request on GitHub", run: w.openPullOnGitHub},
 		{title: "Copy Review Comments and Close", run: func() {
@@ -143,16 +152,27 @@ func (w *window) openCurrent() {
 	}
 }
 
-func (w *window) copyComments() {
-	md := w.commentsMarkdown()
+func (w *window) copyComments() { w.copy("comments", w.commentsMarkdown()) }
+
+// copyNotes puts the notes of the agent's review on the clipboard, for an
+// agent to address.
+func (w *window) copyNotes() { w.copy("notes", w.notesMarkdown()) }
+
+// copy writes markdown to the clipboard, and marks what was copied, so the
+// button that copied it shows a check for a while.
+func (w *window) copy(what, md string) {
 	if md == "" {
 		return
 	}
 	if w.win != nil {
 		mygo.Clipboard.WriteText(md)
 	}
-	w.copied = md
-	w.copiedAt = w.now
+	w.copied, w.copiedAt = what, w.now
+}
+
+// copiedNow reports whether what was copied last was what, and just now.
+func (w *window) copiedNow(what string) bool {
+	return w.copied == what && time.Since(w.copiedAt) < 2*time.Second
 }
 
 // palette shows the command bar while it is open.

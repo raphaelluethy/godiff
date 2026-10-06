@@ -434,6 +434,27 @@ func (w *window) noteList(c *ui.Context, pal *palette, st *analysisState) {
 				st.allNotes = !st.allNotes
 			}
 		}
+		if w.copiedNow("notes") {
+			c.After(2 * time.Second)
+		}
+		ui.Row(c).Padding(4, 8).Gap(8).Children(func() {
+			label, icon := "Copy "+plural(len(notes), "note")+" as Markdown", iconCopy
+			color := t.TextMuted
+			if w.copiedNow("notes") {
+				label, icon, color = "Copied", iconCheck, pal.viewed
+			}
+			b := ui.ButtonBase(c).TextColor(color).Children(func() {
+				ui.Icon(c, icon).FontSize(12).TextColor(color)
+				ui.Text(c, label).FontSize(12).TextColor(color)
+			})
+			if b.Hovered() {
+				b.Background(pal.hover)
+			}
+			if b.Clicked() {
+				w.copyNotes()
+				c.After(2 * time.Second)
+			}
+		})
 	})
 }
 

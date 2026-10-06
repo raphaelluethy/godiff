@@ -161,7 +161,7 @@ type window struct {
 	comments   []*comment
 	discarding *comment
 	user       string
-	copied     string
+	copied     string // what was copied last: the comments, or the notes
 	copiedAt   time.Time
 
 	// Committing.

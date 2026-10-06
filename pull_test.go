@@ -395,6 +395,28 @@ func TestAIReview(t *testing.T) {
 		}
 	}
 	snapshot(t, tt, "ai-review")
+	// The card copies the notes as Markdown, for an agent to address.
+	if err := tt.Click("Copy 2 notes as Markdown"); err != nil {
+		t.Logf("texts: %q", tt.Texts())
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !w.copiedNow("notes") {
+		t.Errorf("copied %q at %v", w.copied, w.copiedAt)
+	}
+	md := w.notesMarkdown()
+	for _, want := range []string{
+		"# Address these Review Comments",
+		"1. **main.go** (New line 6)",
+		"   ```diff\n   @@ ",
+		"   Callers may match on Hello.",
+		"2. **old.txt** (the whole file)",
+		"   Nothing reads it anymore.",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("no %q in\n%s", want, md)
+		}
+	}
 	w.revealFile(slices.IndexFunc(w.files, func(f *fileState) bool { return f.Path == "old.txt" }))
 	tt.Frame()
 	if !tt.HasText("Nothing reads it anymore.") {

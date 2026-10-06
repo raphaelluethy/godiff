@@ -46,7 +46,9 @@ dark mode, menus and vibrancy.
   those the agent lists, of any of its providers; by default OpenCode
   reviews with the model it starts with itself. The card lists the notes,
   and the file tree marks the files with some: click one, or press
-  <kbd>N</kbd> and <kbd>⇧N</kbd>, to go from note to note.
+  <kbd>N</kbd> and <kbd>⇧N</kbd>, to go from note to note. **Copy AI Notes**
+  (<kbd>⌘⇧A</kbd>, or the button in the card) puts them on the clipboard as
+  Markdown, each with the diff around it, for an agent to address.
 - **Find in diffs** (<kbd>⌘F</kbd>), a **file filter** (<kbd>⌘P</kbd>) and a
   **command bar** (<kbd>⌘K</kbd>).
 - Image previews of changed pictures, a file tree with change counts and

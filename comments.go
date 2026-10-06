@@ -135,13 +135,52 @@ func (w *window) commentsMarkdown() string {
 				context = f.Note
 			}
 		}
-		fence := "```"
-		for strings.Contains(context, fence) {
-			fence += "`"
-		}
 		item := fmt.Sprintf("%d. **%s** (%s)\n\n%s\n\n%s", i+1, c.path, c.label(),
-			indent3(fence+"diff\n"+context+"\n"+fence), indent3(strings.TrimSpace(c.text)))
+			indent3(fence(context, "diff")), indent3(strings.TrimSpace(c.text)))
 		items = append(items, item)
+	}
+	out := strings.Join(items, "\n\n")
+	if prefix := w.settings.ReviewCommentsPrefix; prefix != "" {
+		out = prefix + "\n\n" + out
+	}
+	return out
+}
+
+// notesMarkdown writes the notes of the agent's review as Markdown, each
+// with the lines around it, for an agent to address. The notes on the files
+// that changed since the review are left out: their lines may have moved,
+// and the surface leaves them out too.
+func (w *window) notesMarkdown() string {
+	notes := w.orderedNotes()
+	if len(notes) == 0 {
+		return ""
+	}
+	byPath := map[string]*fileState{}
+	for _, f := range w.files {
+		byPath[f.Path] = f
+	}
+	var items []string
+	for i, n := range notes {
+		where := "the whole file"
+		if !n.file {
+			where = "New line " + itoa(n.line)
+			if n.side == sideOld {
+				where = "Old line " + itoa(n.line)
+			}
+		}
+		if n.critical {
+			where += ", needs care"
+		}
+		var b strings.Builder
+		fmt.Fprintf(&b, "%d. **%s** (%s)\n\n", i+1, n.path, where)
+		// A note on a whole file has no line to show around it.
+		if f := byPath[n.path]; f != nil && !n.file {
+			if ctx := commentContext(f, &comment{path: n.path, side: n.side, line: n.line}); ctx != "" {
+				b.WriteString(indent3(fence(ctx, "diff")) + "\n\n")
+			}
+		}
+		b.WriteString(indent3(strings.TrimSpace(n.text)))
+		items = append(items, b.String())
 	}
 	out := strings.Join(items, "\n\n")
 	if prefix := w.settings.ReviewCommentsPrefix; prefix != "" {
@@ -156,6 +195,16 @@ func indent3(s string) string {
 		lines[i] = "   " + l
 	}
 	return strings.Join(lines, "\n")
+}
+
+// fence wraps a text in a code fence long enough to hold it, so that a
+// fence within the text does not end it early.
+func fence(text, lang string) string {
+	f := "```"
+	for strings.Contains(text, f) {
+		f += "`"
+	}
+	return f + lang + "\n" + text + "\n" + f
 }
 
 // commentContext returns the hunk header and the lines around a comment,

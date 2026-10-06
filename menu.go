@@ -81,6 +81,7 @@ func buildMenu() *mygo.Menu {
 			{Label: "Filter Files", Accelerator: "CmdOrCtrl+P", Click: inWindow(func(w *window) { w.focusFilter() })},
 			mygo.Separator(),
 			{Label: "Copy Review Comments", Accelerator: "CmdOrCtrl+Shift+M", Click: inWindow(func(w *window) { w.copyComments() })},
+			{Label: "Copy AI Notes", Accelerator: "CmdOrCtrl+Shift+A", Click: inWindow(func(w *window) { w.copyNotes() })},
 		}},
 		{Label: "View", Submenu: []*mygo.MenuItem{
 			{Label: "Command Bar…", Accelerator: "CmdOrCtrl+K", Click: inWindow(func(w *window) { w.paletteOpen = !w.paletteOpen })},
